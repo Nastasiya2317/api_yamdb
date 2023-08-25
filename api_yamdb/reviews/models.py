@@ -49,9 +49,9 @@ class Titles(models.Model):
         verbose_name_plural = _("Titles")
 
 
-class GenreTitles(models.Model):
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+class GenreTitles(models.Model):   #id,title_id,genre_id
     titles = models.ForeignKey(Titles, on_delete=models.CASCADE)
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.genre} {self.titles}"
@@ -83,21 +83,21 @@ class Reviews(models.Model):
         verbose_name_plural = _("Reviews")
 
 
-class Comment(models.Model):
-    author = models.ForeignKey(
-        User,
-        verbose_name=_("Author"),
-        on_delete=models.CASCADE,
-    )
-    text = models.CharField(
-        verbose_name=_("Commets text"),
-        max_length=256,
-    )
+class Comment(models.Model): 
     review = models.ForeignKey(
         Reviews,
         verbose_name=_("Review"),
         on_delete=models.CASCADE,
         related_name="comments",
+    )
+    text = models.CharField(
+        verbose_name=_("Commets text"),
+        max_length=256,
+    )
+    author = models.ForeignKey(
+        User,
+        verbose_name=_("Author"),
+        on_delete=models.CASCADE,
     )
     created = models.DateTimeField(
         auto_now_add=True,
@@ -107,5 +107,3 @@ class Comment(models.Model):
     class Meta:
         verbose_name = _("Comment")
         verbose_name_plural = _("Comments")
-
-
