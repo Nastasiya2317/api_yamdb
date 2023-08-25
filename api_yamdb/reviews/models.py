@@ -14,6 +14,7 @@ class User(AbstractUser):
         (MODERATOR, _("Moderator")),
     ]
     username_validator = UnicodeUsernameValidator()
+
     username = models.CharField(
         _("Username"),
         max_length=150,
@@ -25,9 +26,7 @@ class User(AbstractUser):
         error_messages={
             "Unique": _("A user with that username already exists."),
         },
-    )
-    first_name = models.CharField(_("First name"), max_length=150, blank=True)
-    last_name = models.CharField(_("Last name"), max_length=150, blank=True)
+    )    
     email = models.EmailField(_("Email address"), blank=True)
     role = models.CharField(
         _("Users role"),
@@ -39,6 +38,10 @@ class User(AbstractUser):
         verbose_name="Биография",
         blank=True,
     )
+    first_name = models.CharField(_("First name"), max_length=150, blank=True)
+    last_name = models.CharField(_("Last name"), max_length=150, blank=True)
+    
+    
 
     @property
     def is_admin(self):
@@ -75,7 +78,15 @@ class Category(models.Model):
 
 class Titles(models.Model):
     name = models.CharField(_("Name"), max_length=100)
-    year = models.IntegerField(_("Year"))
+    year = models.IntegerField(_("Year"))    
+    category = models.ForeignKey(
+        Category,
+        # on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
+        related_name="titles",
+        verbose_name=_("Category"),
+        #null=True
+    )
     description = models.TextField(_("Description", null=True, blank=True))
     genre = models.ManyToManyField(
         Genre,
@@ -83,12 +94,6 @@ class Titles(models.Model):
         related_name="titles",
         blank=True,
         through="GenreTitles"
-    )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        related_name="titles",
-        verbose_name=_("Category")
     )
 
     def __str__(self):
@@ -100,9 +105,9 @@ class Titles(models.Model):
         
         
 class GenreTitles(models.Model):
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
     titles = models.ForeignKey(Titles, on_delete=models.CASCADE)
-
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    
     def __str__(self):
         return f"{self.genre} {self.titles}"
 
@@ -112,20 +117,21 @@ class GenreTitles(models.Model):
 
 
 class Review(models.Model):
-    text = models.TextField(verbose_name=_("Text"))
     title = models.ForeignKey(
         Titles,
         verbose_name=_("Title"),
         on_delete=models.CASCADE,
         related_name="reviews",
     )
+    text = models.TextField(verbose_name=_("Text"))
     author = models.ForeignKey(
         User, verbose_name=_("Author"), on_delete=models.CASCADE, related_name="reviews"
     )
+    rating = models.IntegerField(_("Feedback score"))
     pub_date = models.DateTimeField(_("Publication date"),
                                     auto_now_add=True, db_index=True
                                     )
-    rating = models.IntegerField(_("Feedback score"))
+
 
     class Meta:
         constraints = [
@@ -139,21 +145,21 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
-    author = models.ForeignKey(
-        User,
-        verbose_name=_("Author"),
-        on_delete=models.CASCADE,
-        related_name="comments",
-    )
-    text = models.TextField(
-        verbose_name=_("Commets text"),
-    )
     review = models.ForeignKey(
         Review,
         verbose_name=_("Review"),
         on_delete=models.CASCADE,
         related_name="comments",
     )
+    text = models.TextField(
+        verbose_name=_("Commets text"),
+    )
+    author = models.ForeignKey(
+        User,
+        verbose_name=_("Author"),
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )    
     created = models.DateTimeField(
         auto_now_add=True, db_index=True, verbose_name=_("Created")
     )
